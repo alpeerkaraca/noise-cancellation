@@ -257,6 +257,12 @@ async def remove_noise(
                     f"Geçici giriş dosyası '{temp_input_path}' silinemedi: {e_remove}"
                 )
 
+@app.get("/remove_noise") 
+async def health_check():
+    """
+    Basit bir sağlık kontrolü endpoint'i.
+    """
+    return {"status": "ok", "message": "Gürültü kaldırma servisi çalışıyor."}
 
 MSG_TYPE_CONFIG = "config"
 MSG_TYPE_CONTROL = "control"
