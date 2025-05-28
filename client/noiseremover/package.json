@@ -1,0 +1,20 @@
+{
+  "name": "noiseremover",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build:tailwindcss": "npx @tailwindcss/cli  -i src/main/resources/static/css/input.css -o src/main/resources/static/css/output.css --minify",
+    "watch:tailwindcss": "npx @tailwindcss/cli  -i src/main/resources/static/css/input.css -o src/main/resources/static/css/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@catppuccin/tailwindcss-monorepo": "github:catppuccin/tailwindcss#feat!/tailwindcss-v4"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.8",
+    "tailwindcss": "^4.1.8"
+  }
+}

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ses Gürültü Giderme Aracı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      
+    </style>
+  </head>
+  <body class="bg-gray-100 text-gray-900 leading-relaxed font-sans">
+    <div
+      class="container bg-white p-7 md:p-10 rounded-md shadow-xl max-w-3xl mx-auto my-10"
+    >
+      <h1 class="text-gray-800 text-center mb-8 font-light text-3xl">
+        Ses Gürültü Giderme Aracı
+      </h1>
+
+      <div
+        th:if="${errorMessage}"
+        class="text-red-700 bg-red-100 p-4 border border-red-300 rounded-md mb-5 text-center"
+        th:text="${errorMessage}"
+      ></div>
+
+      <form
+        method="POST"
+        th:action="@{/remove_noise}"
+        enctype="multipart/form-data"
+      >
+        <div class="mb-5">
+          <label for="audioFile" class="block mb-2 text-gray-600 font-medium"
+            >Ses Dosyası (WAV):</label
+          >
+          <input
+            type="file"
+            id="audioFile"
+            name="audioFile"
+            accept=".wav,audio/wav,audio/x-wav"
+            required
+            class="w-full p-2 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+        </div>
+
+        
+        <button
+          type="button"
+          id="toggleAdvancedButton"
+          class="text-white py-2 px-5 border-none rounded-md cursor-pointer text-base font-medium inline-block text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-600 mb-5"
+        >
+          Gelişmiş Ayarları Göster
+        </button>
+
+        
+        <div
+          id="advancedParameters"
+          class="hidden p-5 bg-gray-50 border border-gray-300 rounded-md mt-3"
+        >
+          <h3
+            class="text-xl text-gray-800 mt-0 mb-4 border-b border-gray-300 pb-2 font-normal"
+          >
+            Uğultu Giderme Parametreleri
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div class="mb-0">
+              
+              <label
+                for="humFrequencies"
+                class="block mb-2 text-gray-600 font-medium"
+                >Uğultu Frekansları:</label
+              >
+              <input
+                type="text"
+                id="humFrequencies"
+                name="humFrequencies"
+                th:value="${humFrequencies ?: '60,120,180'}"
+                class="w-full p-3 border border-gray-300 rounded-md text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <small class="text-sm text-gray-500 mt-1 block"
+                >Örn: 60,120,180 (virgülle ayırın)</small
+              >
+            </div>
+            <div class="mb-0">
+              <label
+                for="humBandwidth"
+                class="block mb-2 text-gray-600 font-medium"
+                >Uğultu Bant Genişliği (Hz):</label
+              >
+              <input
+                type="number"
+                step="0.1"
+                id="humBandwidth"
+                name="humBandwidth"
+                th:value="${humBandwidth ?: '10.0'}"
+                class="w-full p-3 border border-gray-300 rounded-md text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <small class="text-sm text-gray-500 mt-1 block">Örn: 10.0</small>
+            </div>
+            <div class="mb-0">
+              <label
+                for="humAttenuation"
+                class="block mb-2 text-gray-600 font-medium"
+                >Uğultu Zayıflatma:</label
+              >
+              <input
+                type="number"
+                step="0.01"
+                max="1.0"
+                min="0.0"
+                id="humAttenuation"
+                name="humAttenuation"
+                th:value="${humAttenuation ?: '0.05'}"
+                class="w-full p-3 border border-gray-300 rounded-md text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <small class="text-sm text-gray-500 mt-1 block"
+                >0 (tamamen kaldır) - 1 (etki yok). Örn: 0.05</small
+              >
+            </div>
+          </div>
+
+          <h3
+            class="text-xl text-gray-800 mt-8 mb-4 border-b border-gray-300 pb-2 font-normal"
+          >
+            Genel Gürültü Azaltma Parametreleri
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div class="mb-0">
+              <label
+                for="noiseProfileDuration"
+                class="block mb-2 text-gray-600 font-medium"
+                >Gürültü Profili Süresi (sn):</label
+              >
+              <input
+                type="number"
+                step="0.1"
+                min="0.1"
+                id="noiseProfileDuration"
+                name="noiseProfileDuration"
+                th:value="${noiseProfileDuration ?: '0.5'}"
+                class="w-full p-3 border border-gray-300 rounded-md text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <small class="text-sm text-gray-500 mt-1 block"
+                >Gürültü örneği için süre. Örn: 0.5</small
+              >
+            </div>
+            <div class="mb-0">
+              <label
+                for="noiseThresholdFactor"
+                class="block mb-2 text-gray-600 font-medium"
+                >Gürültü Eşik Faktörü:</label
+              >
+              <input
+                type="number"
+                step="0.1"
+                min="0.1"
+                id="noiseThresholdFactor"
+                name="noiseThresholdFactor"
+                th:value="${noiseThresholdFactor ?: '1.5'}"
+                class="w-full p-3 border border-gray-300 rounded-md text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <small class="text-sm text-gray-500 mt-1 block"
+                >Gürültü eşiğini ayarlar. Örn: 1.5</small
+              >
+            </div>
+            <div class="mb-0">
+              <label
+                for="generalNoiseAttenuation"
+                class="block mb-2 text-gray-600 font-medium"
+                >Genel Gürültü Zayıflatma:</label
+              >
+              <input
+                type="number"
+                step="0.01"
+                max="1.0"
+                min="0.0"
+                id="generalNoiseAttenuation"
+                name="generalNoiseAttenuation"
+                th:value="${generalNoiseAttenuation ?: '0.1'}"
+                class="w-full p-3 border border-gray-300 rounded-md text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <small class="text-sm text-gray-500 mt-1 block"
+                >0 (tamamen kaldır) - 1 (etki yok). Örn: 0.1</small
+              >
+            </div>
+          </div>
+
+          <h3
+            class="text-xl text-gray-800 mt-8 mb-4 border-b border-gray-300 pb-2 font-normal"
+          >
+            STFT (Spektral Analiz) Parametreleri
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div class="mb-0">
+              <label
+                for="frameSize"
+                class="block mb-2 text-gray-600 font-medium"
+                >Çerçeve (FFT) Boyutu:</label
+              >
+              <input
+                type="number"
+                step="1"
+                min="256"
+                id="frameSize"
+                name="frameSize"
+                th:value="${frameSize ?: '2048'}"
+                class="w-full p-3 border border-gray-300 rounded-md text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <small class="text-sm text-gray-500 mt-1 block"
+                >Genellikle 2'nin kuvvetleri. Örn: 2048</small
+              >
+            </div>
+            <div class="mb-0">
+              <label
+                for="hopLengthDivisor"
+                class="block mb-2 text-gray-600 font-medium"
+                >Hop Uzunluğu Böleni:</label
+              >
+              <input
+                type="number"
+                step="1"
+                min="1"
+                id="hopLengthDivisor"
+                name="hopLengthDivisor"
+                th:value="${hopLengthDivisor ?: '4'}"
+                class="w-full p-3 border border-gray-300 rounded-md text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <small class="text-sm text-gray-500 mt-1 block"
+                >Hop uzunluğu = Çerçeve / Bölen. Örn: 4</small
+              >
+            </div>
+          </div>
+        </div>
+        
+
+        <div class="mt-8">
+          <input
+            type="submit"
+            value="Sesi İşle ve İndir"
+            class="w-full text-white py-3 px-6 border-none rounded-md cursor-pointer text-lg font-medium text-center transition-colors duration-200 bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg"
+          />
+        </div>
+      </form>
+      <div class="w-full text-center mt-5">
+        <a th:href="@{/realtime}">
+          <button
+            class="text-white py-3 px-6 border-none rounded-md cursor-pointer text-base font-medium inline-block text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-600"
+          >
+            Gerçek Zamanlı Gürültü Engelleme Sistemine Geç
+          </button>
+        </a>
+      </div>
+    </div>
+    <script th:src="@{/js/index.js}"></script>
+  </body>
+</html>

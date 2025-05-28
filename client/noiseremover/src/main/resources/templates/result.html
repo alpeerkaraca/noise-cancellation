@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>İşlem Sonucu - Ses Gürültü Giderme</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+
+    <style>
+      audio::-webkit-media-controls-panel {
+        background-color: #e9ecef;
+        border-radius: 0.3rem;
+        border: 1px solid #dee2e6;
+      }
+      .modal-content img {
+        max-height: calc(
+          90vh - 100px
+        );
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 text-gray-800 leading-relaxed font-sans">
+    <div
+      class="bg-white p-7 md:p-10 rounded-md shadow-xl max-w-5xl mx-auto my-10"
+    >
+      <h1 class="text-gray-800 text-center mb-8 font-normal text-3xl">
+        İşlem Sonucu
+      </h1>
+
+      <div
+        id="imageModal"
+        class="fixed inset-0 w-full h-full bg-black/80 hidden justify-center items-center z-50 p-5 opacity-0 transition-opacity duration-300 ease-in-out"
+      >
+        <div
+          class="modal-content bg-white p-6 rounded-md shadow-2xl max-w-4xl max-h-[90vh] relative overflow-auto transform scale-95 transition-transform duration-300 ease-in-out"
+        >
+          <button
+            id="modalCloseButton"
+            class="absolute top-2 right-3 text-4xl font-bold text-gray-500 bg-transparent border-none cursor-pointer leading-none p-1 transition-colors duration-200 hover:text-red-500"
+            title="Kapat"
+          >
+            ×
+          </button>
+          <img
+            id="modalImage"
+            src=""
+            alt="Büyütülmüş Grafik"
+            class="block max-w-full mx-auto border-none shadow-none cursor-default"
+          />
+        </div>
+      </div>
+
+      <div th:if="${result != null and result.status == 'success'}">
+        <p class="text-center mb-3 text-lg text-gray-600">
+          İşlenen dosya:
+          <strong
+            class="text-gray-800 font-medium"
+            th:text="${result.inputFile}"
+            >dosya_adi.wav</strong
+          >
+        </p>
+        <p
+          class="text-center mb-3 text-lg text-gray-600"
+          th:text="${result.message}"
+        >
+          İşlem başarıyla tamamlandı.
+        </p>
+
+        <div class="mb-8">
+          <h2
+            class="text-gray-800 text-left mt-10 mb-5 border-b border-gray-300 pb-3 text-2xl font-normal"
+          >
+            İşlenmiş Ses Dosyası
+          </h2>
+          <audio
+            controls
+            th:src="${result.processedAudioUrl}"
+            th:if="${result.processedAudioUrl != null}"
+            class="w-full mt-4 rounded-md outline-none"
+          >
+            Tarayıcınız audio elementini desteklemiyor.
+          </audio>
+          <p th:if="${result.processedAudioUrl != null}">
+            <a
+              th:href="${result.processedAudioUrl}"
+              th:download="${result.outputFile ?: 'islenmis_ses.wav'}"
+              class="inline-block mt-4 py-2 px-4 bg-green-500 text-white no-underline rounded-md font-medium transition-colors duration-200 hover:bg-green-600"
+            >
+              <i class="fas fa-download mr-2"></i>
+              İşlenmiş Sesi İndir
+            </a>
+          </p>
+          <p
+            class="text-gray-500"
+            th:unless="${result.processedAudioUrl != null}"
+          >
+            İşlenmiş ses dosyası oluşturulamadı veya bulunamadı.
+          </p>
+        </div>
+
+        <div
+          class="mb-8"
+          th:if="${result.plotUrls != null and !result.plotUrls.isEmpty()}"
+        >
+          <h2
+            class="text-gray-800 text-left mt-10 mb-5 border-b border-gray-300 pb-3 text-2xl font-normal"
+          >
+            Grafikler
+          </h2>
+          <p class="text-gray-500 text-left mb-4 text-sm">
+            Grafiklere tıklayarak büyütebilirsiniz.
+          </p>
+          <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              class="border border-gray-300 p-5 rounded-md bg-gray-100 shadow-sm flex flex-col"
+              th:if="${result.plotUrls.original_signal}"
+            >
+              <h3 class="text-lg text-gray-800 font-medium mb-3">
+                Orijinal Sinyal
+              </h3>
+              <img
+                th:src="${result.plotUrls.original_signal}"
+                alt="Orijinal Sinyal Grafiği"
+                class="enlargeable-plot max-w-full h-auto border border-gray-300 mt-3 rounded-md shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-1 hover:shadow-md"
+              />
+            </div>
+            <div
+              class="border border-gray-300 p-5 rounded-md bg-gray-100 shadow-sm flex flex-col"
+              th:if="${result.plotUrls.filtered_signal_plot}"
+            >
+              <h3 class="text-lg text-gray-800 font-medium mb-3">
+                Filtrelenmiş Sinyal
+              </h3>
+              <img
+                th:src="${result.plotUrls.filtered_signal_plot}"
+                alt="Filtrelenmiş Sinyal Grafiği"
+                class="enlargeable-plot max-w-full h-auto border border-gray-300 mt-3 rounded-md shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-1 hover:shadow-md"
+              />
+            </div>
+            <div
+              class="border border-gray-300 p-5 rounded-md bg-gray-100 shadow-sm flex flex-col"
+              th:if="${result.plotUrls.original_spectrum_linear_plot}"
+            >
+              <h3 class="text-lg text-gray-800 font-medium mb-3">
+                Orijinal Spektrum (Lineer)
+              </h3>
+              <img
+                th:src="${result.plotUrls.original_spectrum_linear_plot}"
+                alt="Orijinal Spektrum (Lineer)"
+                class="enlargeable-plot max-w-full h-auto border border-gray-300 mt-3 rounded-md shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-1 hover:shadow-md"
+              />
+            </div>
+            <div
+              class="border border-gray-300 p-5 rounded-md bg-gray-100 shadow-sm flex flex-col"
+              th:if="${result.plotUrls.original_spectrum_db_plot}"
+            >
+              <h3 class="text-lg text-gray-800 font-medium mb-3">
+                Orijinal Spektrum (dB)
+              </h3>
+              <img
+                th:src="${result.plotUrls.original_spectrum_db_plot}"
+                alt="Orijinal Spektrum (dB)"
+                class="enlargeable-plot max-w-full h-auto border border-gray-300 mt-3 rounded-md shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-1 hover:shadow-md"
+              />
+            </div>
+            <div
+              class="border border-gray-300 p-5 rounded-md bg-gray-100 shadow-sm flex flex-col"
+              th:if="${result.plotUrls.filtered_spectrum_linear_plot}"
+            >
+              <h3 class="text-lg text-gray-800 font-medium mb-3">
+                Filtrelenmiş Spektrum (Lineer)
+              </h3>
+              <img
+                th:src="${result.plotUrls.filtered_spectrum_linear_plot}"
+                alt="Filtrelenmiş Spektrum (Lineer)"
+                class="enlargeable-plot max-w-full h-auto border border-gray-300 mt-3 rounded-md shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-1 hover:shadow-md"
+              />
+            </div>
+            <div
+              class="border border-gray-300 p-5 rounded-md bg-gray-100 shadow-sm flex flex-col"
+              th:if="${result.plotUrls.filtered_spectrum_db_plot}"
+            >
+              <h3 class="text-lg text-gray-800 font-medium mb-3">
+                Filtrelenmiş Spektrum (dB)
+              </h3>
+              <img
+                th:src="${result.plotUrls.filtered_spectrum_db_plot}"
+                alt="Filtrelenmiş Spektrum (dB)"
+                class="enlargeable-plot max-w-full h-auto border border-gray-300 mt-3 rounded-md shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-1 hover:shadow-md"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="mb-8"
+          th:if="${result.plotUrls == null or result.plotUrls.isEmpty()}"
+        >
+          <p>Görüntülenecek grafik bulunmamaktadır.</p>
+        </div>
+      </div>
+      <div th:if="${result == null or result.status != 'success'}">
+        <p
+          class="text-red-700 bg-red-100 p-4 border border-red-300 rounded-md mb-5 text-center"
+          th:text="${result != null ? result.message : 'Bilinmeyen bir hata oluştu veya işlem başarısız.'}"
+        ></p>
+      </div>
+
+      <a
+        th:href="@{/}"
+        class="block w-fit mx-auto mt-10 py-3 px-6 bg-blue-600 text-white rounded-md cursor-pointer text-lg font-medium text-center no-underline transition-all duration-200 shadow-sm hover:bg-blue-700 hover:shadow-md"
+        >Yeni Bir Dosya İşle</a
+      >
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const imageModal = document.getElementById("imageModal");
+        const modalImage = document.getElementById("modalImage");
+        const modalCloseButton = document.getElementById("modalCloseButton");
+        const enlargeablePlots = document.querySelectorAll(".enlargeable-plot");
+
+        function openModal(imageUrl) {
+          modalImage.src = imageUrl;
+          imageModal.classList.remove("hidden");
+          imageModal.classList.add("flex");
+          setTimeout(() => {
+            imageModal.classList.add("opacity-100");
+            imageModal
+              .querySelector(".modal-content")
+              .classList.remove("scale-95");
+            imageModal
+              .querySelector(".modal-content")
+              .classList.add("scale-100");
+          }, 20);
+          document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+          imageModal.classList.remove("opacity-100");
+          imageModal
+            .querySelector(".modal-content")
+            .classList.remove("scale-100");
+          imageModal.querySelector(".modal-content").classList.add("scale-95");
+          setTimeout(() => {
+            imageModal.classList.add("hidden");
+            imageModal.classList.remove("flex");
+            document.body.style.overflow = "";
+          }, 300);
+        }
+
+        enlargeablePlots.forEach((plot) => {
+          plot.addEventListener("click", function () {
+            openModal(this.src);
+          });
+        });
+
+        modalCloseButton.addEventListener("click", closeModal);
+
+        imageModal.addEventListener("click", function (event) {
+          if (event.target === imageModal) {
+            closeModal();
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (
+            event.key === "Escape" &&
+            !imageModal.classList.contains("hidden")
+          ) {
+            closeModal();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
