@@ -27,8 +27,8 @@ Projeyi çalıştırmak için backend ve client uygulamalarının ayrı ayrı ba
 Projeyi yerel makinenize klonlayın:
 
 ```bash
-git clone https://github.com/alpeerkaraca/signals-and-systems-noise-cancelling
-cd signals-and-systems-noise-cancelling
+https://github.com/alpeerkaraca/noise-cancellation
+cd noise-cancellation
 ```
 
 ### 2. Backend Sunucusu (Python FastAPI)
