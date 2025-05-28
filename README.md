@@ -129,7 +129,3 @@ Backend ve Client sunucuları başarıyla başlatıldıktan sonra:
 - Adres çubuğuna `http://localhost:8080` yazarak uygulamaya erişebilirsiniz.
 
 Artık ses dosyalarınızı yükleyerek veya gerçek zamanlı mikrofon girişiyle gürültü giderme özelliklerini kullanabilirsiniz.
-
-## Uygulamayı Hazır Olarak Kullanmak
-
-Uygulamayı hazır olarak web üzerinden kullanmak için [https://noise-cancel.alpeerkaraca.site](https://noise-cancel.alpeerkaraca.site) adresine ulaşabilirsiniz.
