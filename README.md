@@ -67,8 +67,6 @@ Backend sunucusu, ses işleme ve analiz algoritmalarını barındırır.
     pip install -r requirements.txt
     ```
 
-    _Not: `requirements.txt` dosyasının projede güncel ve gerekli tüm kütüphaneleri (örn: `fastapi`, `uvicorn[standard]`, `numpy`, `scipy`, `librosa`, `matplotlib`) içerdiğinden emin olun._
-
 4.  **FastAPI Sunucusunu Başlatma**:
     `backend` dizinindeyken aşağıdaki komutu çalıştırın:
     ```bash
