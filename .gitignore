@@ -5,6 +5,7 @@ backend/__pycache__/
 backend/*.py[cod]
 backend/.env
 backend/app/uploads/*
+backend/uploads/**/*
 backend/app/**/__pycache__/
 
 **/node_modules/

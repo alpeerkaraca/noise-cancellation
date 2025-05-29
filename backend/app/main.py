@@ -28,10 +28,13 @@ import scipy
 from scipy import signal
 import soundfile as sf
 
-from models.response import NoiseRemoverResponse
-from models.realtime import RealtimeInitialConfig, RealtimeProcessingParams
-import plotting_utils as utils
-import core
+from app.models.response import NoiseRemoverResponse
+from app.models.realtime import RealtimeInitialConfig, RealtimeProcessingParams
+import app.plotting_utils as utils
+from app.core import (
+    estimate_noise_profile,
+    remove_hum_and_background_noise,
+)
 
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -96,6 +99,13 @@ async def remove_noise(
     plot_urls = {}
     relative_output_path = None
 
+    # Ortam değişkeninden public base url al
+    PUBLIC_BASE_URL = "http://localhost:8001"
+    if PUBLIC_BASE_URL:
+        PUBLIC_BASE_URL = PUBLIC_BASE_URL.rstrip("/")
+    else:
+        PUBLIC_BASE_URL = str(request.base_url).rstrip("/")
+
     try:
         wave, sample_rate = librosa.load(temp_input_path, sr=None, mono=True)
         logger.info(f"Yüklenen dosya: {temp_input_path}, Örnekleme hızı: {sample_rate}")
@@ -125,7 +135,7 @@ async def remove_noise(
                 title=f"Orijinal Ses Sinyali ({input_filename})",
             )
             plot_urls["original_signal"] = (
-                f"{str(request.base_url).rstrip('/')}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{original_plot_filename}"
+                f"{PUBLIC_BASE_URL}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{original_plot_filename}"
             )
 
             if len(wave) >= frame_size:
@@ -144,10 +154,10 @@ async def remove_noise(
                     "Orijinal Sinyal Spektrumu",
                 )
                 plot_urls["original_spectrum_linear_plot"] = (
-                    f"{str(request.base_url).rstrip('/')}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{lin_name}"
+                    f"{PUBLIC_BASE_URL}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{lin_name}"
                 )
                 plot_urls["original_spectrum_db_plot"] = (
-                    f"{str(request.base_url).rstrip('/')}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{db_name}"
+                    f"{PUBLIC_BASE_URL}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{db_name}"
                 )
             else:
                 logger.warning("Orijinal sinyal spektrum çizimi için çok kısa.")
@@ -159,7 +169,7 @@ async def remove_noise(
 
         logger.info("Core'de")
 
-        filtered_wave = core.remove_hum_and_background_noise(
+        filtered_wave = remove_hum_and_background_noise(
             signal=wave,
             sample_rate=sample_rate,
             hum_frequencies=hum_frequencies,
@@ -183,7 +193,7 @@ async def remove_noise(
                 f"Filtrelenmiş Sinyal",
             )
             plot_urls["filtered_signal_plot"] = (
-                f"{str(request.base_url).rstrip('/')}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{filtered_signal_plot_filename}"
+                f"{PUBLIC_BASE_URL}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{filtered_signal_plot_filename}"
             )
 
             # Spektrum grafiği (ilk frame için)
@@ -203,10 +213,10 @@ async def remove_noise(
                     "Filtrelenmiş İlk Çerçeve Spektrumu",
                 )
                 plot_urls["filtered_spectrum_linear_plot"] = (
-                    f"{str(request.base_url).rstrip('/')}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{lin_name_f}"
+                    f"{PUBLIC_BASE_URL}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{lin_name_f}"
                 )
                 plot_urls["filtered_spectrum_db_plot"] = (
-                    f"{str(request.base_url).rstrip('/')}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{db_name_f}"
+                    f"{PUBLIC_BASE_URL}/{OUTPUT_FILES_DIRECTORY}/{session_id}/{db_name_f}"
                 )
             else:
                 logger.warning("Filtrelenmiş sinyal spektrum çizimi için çok kısa.")
@@ -229,11 +239,11 @@ async def remove_noise(
             message="Ses dosyası başarıyla işlendi.",
             input_file=input_filename,
             output_file=processed_aud_fname,
-            processed_audio_url=f"{str(request.base_url).rstrip('/')}/{OUTPUT_FILES_DIRECTORY}/{relative_output_path}",
+            processed_audio_url=f"{PUBLIC_BASE_URL}/{OUTPUT_FILES_DIRECTORY}/{relative_output_path}",
             plot_urls=plot_urls,
             session_id=session_id,
         )
-        logger.error(f"Hey Here is The Response info it You Dumbass: {response}")
+        logger.error(f"Hey Here is The Response info: {response}")
         return response
 
     except HTTPException:
@@ -578,7 +588,7 @@ async def websocket_realtime_cancelling(websocket: WebSocket):
                             >= current_stft_params["frame_size"]
                         ):
                             try:
-                                noise_profile_estimated = core.estimate_noise_profile(
+                                noise_profile_estimated = estimate_noise_profile(
                                     noise_segment=initial_noise_buffer[
                                         :noise_buffer_target_len_manual
                                     ],
@@ -621,7 +631,7 @@ async def websocket_realtime_cancelling(websocket: WebSocket):
                             await websocket.send_bytes(audio_chunk_np.tobytes())
                             continue
 
-                        processed_chunk_np = core.remove_hum_and_background_noise(
+                        processed_chunk_np = remove_hum_and_background_noise(
                             signal=audio_chunk_np,
                             sample_rate=ws_sr,
                             frame_size=current_stft_params["frame_size"],
@@ -682,3 +692,8 @@ async def websocket_realtime_cancelling(websocket: WebSocket):
                 pass
     finally:
         logger.info(f"WebSocket bağlantısı sonlandırılıyor (finally): {client_addr}")
+
+
+@app.get("/")
+async def root_health():
+    return {"status": "ok", "message": "Hello There! The server is running."}

@@ -18,7 +18,7 @@ def estimate_noise_profile(noise_segment, frame_size, hop_length):
         return np.zeros(num_freq_bins, dtype=np.float32)
     try:
         noise_stft = librosa.stft(
-            noise_segment, n_fft=frame_size, hop_length=hop_length, center=False
+            noise_segment, n_fft=frame_size, hop_length=hop_length, center=True
         )
         noise_power_spectrum = np.abs(noise_stft) ** 2
         avg_noise_profile = np.mean(noise_power_spectrum, axis=1)
@@ -71,7 +71,7 @@ def remove_hum_and_background_noise(
         original_length = len(signal)
 
         stft_matrix = librosa.stft(
-            signal, n_fft=frame_size, hop_length=hop_length, center=False
+            signal, n_fft=frame_size, hop_length=hop_length, center=True
         )
         frequencies = librosa.fft_frequencies(sr=sample_rate, n_fft=frame_size)
 
@@ -116,26 +116,10 @@ def remove_hum_and_background_noise(
             processed_stft_matrix,
             hop_length=hop_length,
             length=original_length,
-            center=False,
+            center=True,
         )
 
         return filtered_signal
     except Exception as e:
         logger.error(f"Error in remove_hum_and_background_noise: {e}", exc_info=True)
-        raise
-
-
-def get_windowed_fft_frame(signal_segment, window_type="hann"):
-    try:
-        if window_type == "hann":
-            window = scipy.signal.windows.get_window(
-                "hann", len(signal_segment), fftbins=False
-            )
-        else:
-            window = np.ones(len(signal_segment))
-        windowed_segment = signal_segment * window
-        fft_result = np.fft.rfft(windowed_segment)
-        return fft_result
-    except Exception as e:
-        logger.error(f"Error in get_windowed_fft_frame: {e}", exc_info=True)
         raise

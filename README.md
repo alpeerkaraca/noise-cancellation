@@ -20,7 +20,7 @@ Uygulamayı yerel makinenizde çalıştırabilmek için aşağıdaki yazılımla
 
 ## Kurulum ve Çalıştırma
 
-Projeyi çalıştırmak için backend ve client uygulamalarının ayrı ayrı başlatılması gerekmektedir.
+Projeyi çalıştırmak için iki yöntem mevcuttur Docker kullanarak izole bir ortamda çalıştırabilir ya da  backend ve client uygulamalarını manuel olarak çalıştırabilirsiniz.
 
 ### 1. Projeyi Klonlama
 
@@ -30,7 +30,15 @@ Projeyi yerel makinenize klonlayın:
 https://github.com/alpeerkaraca/noise-cancellation
 cd noise-cancellation
 ```
+### Docker İle Kullanım
+### 2. Docker İle Çalıştırma
+Sisteminizde docker kurulu ve çalışır halde ise aşağıdaki komutu kullanarak projeyi derleyebilir ve hızlıca çalıştırabilirsiniz. Süreç sonunda ön ucunuz `http://localhost:8080` ve arka ucunuz da `http://localhost:8001` üzerinden erişilebilir durumdadır.
 
+
+    docker compose up --build
+
+
+### Manuel Kurulum
 ### 2. Backend Sunucusu (Python FastAPI)
 
 Backend sunucusu, ses işleme ve analiz algoritmalarını barındırır.
@@ -70,9 +78,9 @@ Backend sunucusu, ses işleme ve analiz algoritmalarını barındırır.
 4.  **FastAPI Sunucusunu Başlatma**:
     `backend` dizinindeyken aşağıdaki komutu çalıştırın:
     ```bash
-    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
     ```
-    Bu komut, backend sunucusunu `http://localhost:8000` adresinde başlatacaktır. `--reload` parametresi, kod değişikliklerinde sunucunun otomatik olarak yeniden başlatılmasını sağlar.
+    Bu komut, backend sunucusunu `http://localhost:8001` adresinde başlatacaktır. `--reload` parametresi, kod değişikliklerinde sunucunun otomatik olarak yeniden başlatılmasını sağlar.
 
 ### 3. Client Uygulaması (Java Spring Boot + Tailwind CSS)
 

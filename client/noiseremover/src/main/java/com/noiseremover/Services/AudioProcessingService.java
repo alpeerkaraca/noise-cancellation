@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class AudioProcessingService {
     private static final Logger logger = LoggerFactory.getLogger(AudioProcessingService.class);
-
     @Value("${fastapi.service.url}")
     private String fastApiServiceUrl;
 
